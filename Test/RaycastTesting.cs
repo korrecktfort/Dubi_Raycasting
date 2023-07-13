@@ -19,9 +19,9 @@ namespace Dubi.RaycastExtension
 
         public void Update()
         {
-            if (this.rayCast.Cast())
+            if (this.rayCast.UpdateRaycast())
             {
-                Collider collider = this.rayCast.RaycastHit.collider;
+                Collider collider = this.rayCast.Hit.collider;
             }
         }
 

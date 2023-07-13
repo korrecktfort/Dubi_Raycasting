@@ -14,7 +14,7 @@ namespace Dubi.RaycastExtension
     {      
         public bool Valid => (!this.raycastAll && this.rayCastHit.collider != null) 
             || (this.raycastAll && this.rayCastHits.Length > 0);
-        public RaycastHit RaycastHit 
+        public RaycastHit Hit 
         {
             get 
             {
@@ -24,7 +24,7 @@ namespace Dubi.RaycastExtension
                 return this.rayCastHit; 
             } 
         }
-        public RaycastHit[] RaycastHits => this.rayCastHits;              
+        public RaycastHit[] Hits => this.rayCastHits;              
         public Vector3 Origin { set => this.origin = value; }
         public Vector3 CustomCheckDirection { set => this.customCheckDir.Value = value; }
         public Vector3 Direction { get => this.direction; set => this.direction = value; }
@@ -102,7 +102,7 @@ namespace Dubi.RaycastExtension
             this.distance.Value = distance;
         }
 
-        public bool Cast()
+        public bool UpdateRaycast()
         {
             Ray ray = new Ray();
 

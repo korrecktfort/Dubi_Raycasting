@@ -12,13 +12,13 @@ namespace Dubi.RaycastExtension
     [System.Serializable]
     public class Raycast
     {      
-        public bool Valid => (!this.raycastAll && this.rayCastHit.collider != null) 
-            || (this.raycastAll && this.rayCastHits.Length > 0);
+        public bool Valid => (!this.raycastAll.Value && this.rayCastHit.collider != null) 
+            || (this.raycastAll.Value && this.rayCastHits.Length > 0);
         public RaycastHit Hit 
         {
             get 
             {
-                if (this.raycastAll && this.rayCastHits.Length > 0)
+                if (this.raycastAll.Value && this.rayCastHits.Length > 0)
                     return this.rayCastHits[0];
 
                 return this.rayCastHit; 
@@ -30,7 +30,7 @@ namespace Dubi.RaycastExtension
         public Vector3 Direction { get => this.direction; set => this.direction = value; }
         public float Distance { get => this.distance.Value; set => this.distance.Value = value; }
         public float Radius { get => this.radius.Value; set => this.radius.Value = value; }
-        public Vector3 Offset { get => offset; set => offset = value; }
+        public Vector3 Offset { get => offset.Value; set => offset.Value = value; }
 
         Transform localTransform = null;
         Vector3 origin = Vector3.zero;
@@ -40,31 +40,31 @@ namespace Dubi.RaycastExtension
 
         [SerializeField] FloatValue distance = new FloatValue(1.0f);
         [SerializeField] FloatValue radius = new FloatValue(0.0f);
-        [SerializeField] bool raycastAll = false;       
-        [SerializeField] LayerMask layerMask = default;
+        [SerializeField] BoolValue raycastAll = new BoolValue(false);       
+        [SerializeField] LayerMaskValue layerMask = default;
         [SerializeField] QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
-        [SerializeField] Vector3 offset = Vector3.zero;
+        [SerializeField] Vector3Value offset = new Vector3Value(Vector3.zero);
 
-        [SerializeField] bool surfaceNormal = false;
-        [SerializeField] bool useRayDir = true;
+        [SerializeField] BoolValue surfaceNormal = new BoolValue(false);
+        [SerializeField] BoolValue useRayDir = new BoolValue(true);
         [SerializeField] Vector3Value customCheckDir = null;
-        [SerializeField] bool isLocalCheckDir = false;
-        [SerializeField] bool useCustomSurfaceCheck = false;
+        [SerializeField] BoolValue isLocalCheckDir = new BoolValue(false);
+        [SerializeField] BoolValue useCustomSurfaceCheck = new BoolValue(false);
 
         /// Sorting hit points
-        [SerializeField] bool sortAlongRay = false;
-        [SerializeField] bool ascendingOrder = false;
+        [SerializeField] BoolValue sortAlongRay = new BoolValue(false);
+        [SerializeField] BoolValue ascendingOrder = new BoolValue(false);
 
         /// Invalid Layer
-        [SerializeField, Tooltip("Select layers that make the cast invalid if hit")] bool useInvalidLayer = false;
-        [SerializeField] LayerMask invalidLayer;
+        [SerializeField, Tooltip("Select layers that make the cast invalid if hit")] BoolValue useInvalidLayer = new BoolValue(false);
+        [SerializeField] LayerMaskValue invalidLayer;
 
 #if UNITY_EDITOR        
-        Vector3 worldOrigin, worldDirection;
+        Vector3Value worldOrigin, worldDirection;
         //[Header("Gizmos")]
-        [SerializeField] bool drawGizmos = false;
-        [SerializeField] bool drawColliderHit = false;
-        [SerializeField] Color color = Color.white;
+        [SerializeField] BoolValue drawGizmos = new BoolValue(false);
+        [SerializeField] BoolValue drawColliderHit = new BoolValue(false);
+        [SerializeField] ColorValue color = new ColorValue(Color.white);
 #endif
 
         public Raycast() { }
@@ -109,30 +109,30 @@ namespace Dubi.RaycastExtension
             if(this.localTransform != null)
             {
                 Matrix4x4 m = this.localTransform.localToWorldMatrix;                
-                ray = new Ray(m.MultiplyPoint(this.origin + this.offset), m.MultiplyVector(this.direction));
+                ray = new Ray(m.MultiplyPoint(this.origin + this.offset.Value), m.MultiplyVector(this.direction));
             }
             else
             {
-                ray = new Ray(this.origin + this.offset, this.direction);
+                ray = new Ray(this.origin + this.offset.Value, this.direction);
             }            
 
 #if UNITY_EDITOR
-            this.worldOrigin = ray.origin;
-            this.worldDirection = ray.direction;
+            this.worldOrigin.Value = ray.origin;
+            this.worldDirection.Value = ray.direction;
 #endif
 
             if(this.radius.Value > 0.0f)
             {
-                if (this.raycastAll)
+                if (this.raycastAll.Value)
                 {
-                    RaycastHit[] hits = Physics.SphereCastAll(ray, this.radius.Value, this.distance.Value, this.layerMask, this.triggerInteraction);
+                    RaycastHit[] hits = Physics.SphereCastAll(ray, this.radius.Value, this.distance.Value, this.layerMask.Value, this.triggerInteraction);
                     if(hits.Length > 0)
                     {
                         hits = RemoveInvalid(hits);
 
-                        if (this.surfaceNormal)
+                        if (this.surfaceNormal.Value)
                         {
-                            if(this.useCustomSurfaceCheck)
+                            if(this.useCustomSurfaceCheck.Value)
                                 for (int i = 0; i < hits.Length; i++)
                                     hits[i] = SurfaceNormalManualRaycast(hits[i]);
                             else
@@ -140,7 +140,7 @@ namespace Dubi.RaycastExtension
                                 hits[i] = SurfaceNormal(hits[i]);
                         }
 
-                        if(this.sortAlongRay)
+                        if(this.sortAlongRay.Value)
                             SortHitsAlongRay(ray, hits);
 
                         this.rayCastHits = hits;
@@ -149,12 +149,12 @@ namespace Dubi.RaycastExtension
                 }
                 else
                 {
-                    if (Physics.SphereCast(ray, this.radius.Value, out RaycastHit hit, this.distance.Value, this.layerMask, this.triggerInteraction))
+                    if (Physics.SphereCast(ray, this.radius.Value, out RaycastHit hit, this.distance.Value, this.layerMask.Value, this.triggerInteraction))
                     {
                         hit = Validate(hit);
 
-                        if (this.surfaceNormal)
-                            hit = this.useCustomSurfaceCheck ? SurfaceNormalManualRaycast(hit) : SurfaceNormal(hit);
+                        if (this.surfaceNormal.Value)
+                            hit = this.useCustomSurfaceCheck.Value ? SurfaceNormalManualRaycast(hit) : SurfaceNormal(hit);
 
                         this.rayCastHit = hit;
                         return hit.collider != null;
@@ -163,14 +163,14 @@ namespace Dubi.RaycastExtension
             }
             else
             {
-                if (this.raycastAll)
+                if (this.raycastAll.Value)
                 {
-                    RaycastHit[] hits = Physics.RaycastAll(ray, this.distance.Value, this.layerMask, this.triggerInteraction);
+                    RaycastHit[] hits = Physics.RaycastAll(ray, this.distance.Value, this.layerMask.Value, this.triggerInteraction);
                     if(hits.Length > 0)
                     {
                         hits = RemoveInvalid(hits);
 
-                        if(this.sortAlongRay)
+                        if(this.sortAlongRay.Value)
                             SortHitsAlongRay(ray, hits);
                         
                         this.rayCastHits = hits;
@@ -179,7 +179,7 @@ namespace Dubi.RaycastExtension
                 }
                 else
                 {
-                    if (Physics.Raycast(ray, out RaycastHit hit, this.distance.Value, this.layerMask, this.triggerInteraction))
+                    if (Physics.Raycast(ray, out RaycastHit hit, this.distance.Value, this.layerMask.Value, this.triggerInteraction))
                     {
                         hit = Validate(hit);
 
@@ -196,7 +196,7 @@ namespace Dubi.RaycastExtension
 
         RaycastHit Validate(RaycastHit hit)
         {
-            if (hit.collider != null && this.useInvalidLayer && Includes(this.invalidLayer, hit.collider.gameObject.layer))
+            if (hit.collider != null && this.useInvalidLayer.Value && Includes(this.invalidLayer.Value, hit.collider.gameObject.layer))
                 hit = new RaycastHit();
 
             return hit;
@@ -210,10 +210,10 @@ namespace Dubi.RaycastExtension
                 float distance = 0.02f;
                 Vector3 normal = hit.normal.normalized;
                 Vector3 point = collider.ClosestPoint(hit.point);
-                Vector3 dir = this.useRayDir ? normal : -this.customCheckDir.Value;                
+                Vector3 dir = this.useRayDir.Value ? normal : -this.customCheckDir.Value;                
                 Vector3 origin = point + distance * 0.5f * dir;
 
-                if (this.isLocalCheckDir)
+                if (this.isLocalCheckDir.Value)
                     dir = this.localTransform.localToWorldMatrix.MultiplyVector(dir);
 
                 Ray ray = new Ray(origin, -dir);                
@@ -237,7 +237,7 @@ namespace Dubi.RaycastExtension
                 Vector3 dir = this.customCheckDir.Value;
 
                 Ray ray = new Ray(point - dir * halfDistance, dir);
-                if (Physics.SphereCast(ray, radius, out RaycastHit surfaceHit, halfDistance * 2.0f, this.layerMask, this.triggerInteraction))
+                if (Physics.SphereCast(ray, radius, out RaycastHit surfaceHit, halfDistance * 2.0f, this.layerMask.Value, this.triggerInteraction))
                     hit.normal = surfaceHit.normal;
             }
 
@@ -268,7 +268,7 @@ namespace Dubi.RaycastExtension
                 for (int i = 0; i < length; i++)
                     sort[i] = new RaycastSortItem(hits[i], Vector3.Dot(hits[i].point - origin, direction));                
 
-                System.Array.Sort(sort, this.ascendingOrder ? CompareByWAsc : CompareByWDesc);
+                System.Array.Sort(sort, this.ascendingOrder.Value ? CompareByWAsc : CompareByWDesc);
 
                 for (int i = 0; i < length; i++)
                     hits[i] = sort[i].hit;
@@ -306,7 +306,7 @@ namespace Dubi.RaycastExtension
             {
                 if(hit.collider != null)
                 {
-                    if (this.useInvalidLayer && !Includes(this.invalidLayer, hit.collider.gameObject.layer))
+                    if (this.useInvalidLayer.Value && !Includes(this.invalidLayer.Value, hit.collider.gameObject.layer))
                     {                   
                         list.Add(hit);
                         continue;
@@ -335,7 +335,7 @@ namespace Dubi.RaycastExtension
 #if UNITY_EDITOR
         public void OnDrawGizmos()
         {     
-            if (EditorApplication.isPlaying && this.drawGizmos)
+            if (EditorApplication.isPlaying && this.drawGizmos.Value)
             {
                 if(this.rayCastHits.Length > 0)
                     for (int i = 0; i < this.rayCastHits.Length; i++)                    
@@ -344,45 +344,45 @@ namespace Dubi.RaycastExtension
                 if (Valid)
                 {                    
                     /// Draw grey line after hit
-                    if(!this.raycastAll)
-                        RaycastGizmos.DrawNormal(this.rayCastHit.point, this.worldDirection, Color.grey, Mathf.Max(0.0f, this.distance.Value - this.rayCastHit.distance), 1.0f);
+                    if(!this.raycastAll.Value)
+                        RaycastGizmos.DrawNormal(this.rayCastHit.point, this.worldDirection.Value, Color.grey, Mathf.Max(0.0f, this.distance.Value - this.rayCastHit.distance), 1.0f);
 
                     /// Draw ray before hit
                     if(this.radius.Value > 0.0f)
                     {
-                        RaycastGizmos.DrawGizmoSphere(this.worldOrigin, this.radius.Value, this.color);
+                        RaycastGizmos.DrawGizmoSphere(this.worldOrigin.Value, this.radius.Value, this.color.Value);
                         
-                        if (this.raycastAll)                                                    
-                            RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.distance.Value, this.radius.Value, this.color, 2.0f);                                                    
+                        if (this.raycastAll.Value)                                                    
+                            RaycastGizmos.DrawWireCapsule(this.worldOrigin.Value, this.worldOrigin.Value + this.worldDirection.Value * this.distance.Value, this.radius.Value, this.color.Value, 2.0f);                                                    
                         else                        
-                            RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.rayCastHit.distance, this.radius.Value, this.color, 2.0f);
+                            RaycastGizmos.DrawWireCapsule(this.worldOrigin.Value, this.worldOrigin.Value + this.worldDirection.Value * this.rayCastHit.distance, this.radius.Value, this.color.Value, 2.0f);
                     }
                     else
                     {
-                        if(this.raycastAll)
-                            RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color, this.distance.Value, 2.0f);
+                        if(this.raycastAll.Value)
+                            RaycastGizmos.DrawNormal(this.worldOrigin.Value, this.worldDirection.Value, this.color.Value, this.distance.Value, 2.0f);
                         else
-                            RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color, this.rayCastHit.distance, 2.0f);
+                            RaycastGizmos.DrawNormal(this.worldOrigin.Value, this.worldDirection.Value, this.color.Value, this.rayCastHit.distance, 2.0f);
                     }
 
                     /// Draw hit normal
-                    if (this.raycastAll)
+                    if (this.raycastAll.Value)
                     {
                         foreach (RaycastHit hit in this.rayCastHits)
-                            RaycastGizmos.DrawRayCastHit(hit, this.color);
+                            RaycastGizmos.DrawRayCastHit(hit, this.color.Value);
                     } else
-                        RaycastGizmos.DrawRayCastHit(this.rayCastHit, this.color);
+                        RaycastGizmos.DrawRayCastHit(this.rayCastHit, this.color.Value);
 
                     /// Draw hit collider
-                    if (this.drawColliderHit)
+                    if (this.drawColliderHit.Value)
                     {
-                        if (this.raycastAll)
+                        if (this.raycastAll.Value)
                         {
                             foreach (RaycastHit hit in this.rayCastHits)
-                                RaycastGizmos.DrawCollider(hit.collider, this.color);
+                                RaycastGizmos.DrawCollider(hit.collider, this.color.Value);
                         }
                         else                        
-                            RaycastGizmos.DrawCollider(this.rayCastHit.collider, this.color);                       
+                            RaycastGizmos.DrawCollider(this.rayCastHit.collider, this.color.Value);                       
                     }
                 }
                 else
@@ -390,12 +390,12 @@ namespace Dubi.RaycastExtension
                     /// Draw ray without hit                    
                     if(this.radius.Value > 0.0f) 
                     {
-                        RaycastGizmos.DrawGizmoSphere(this.worldOrigin, this.radius.Value, this.color);
-                        RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.distance.Value, this.radius.Value, this.color);
+                        RaycastGizmos.DrawGizmoSphere(this.worldOrigin.Value, this.radius.Value, this.color.Value);
+                        RaycastGizmos.DrawWireCapsule(this.worldOrigin.Value, this.worldOrigin.Value + this.worldDirection.Value * this.distance.Value, this.radius.Value, this.color.Value);
                     }
                     else
                     {
-                        RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color, this.distance.Value);
+                        RaycastGizmos.DrawNormal(this.worldOrigin.Value, this.worldDirection.Value, this.color.Value, this.distance.Value);
                     }
                 }                
             }

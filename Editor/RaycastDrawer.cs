@@ -23,33 +23,34 @@ public class RaycastDrawer : PropertyDrawer
             EditorGUI.EndProperty();
             return;
         }
-        
-        position = EditorGUI.IndentedRect(position);
+
+        //position = EditorGUI.IndentedRect(position);
+
+        EditorGUI.indentLevel++;
 
         /// Settings
         position.y += lineHeight;
-        SerializedProperty distance = property.FindPropertyRelative("distance");
-        EditorGUI.PropertyField(position, distance);      
+        SerializedProperty distance = BaseValueHelper.GetValueProp(property.FindPropertyRelative("distance"));
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("distance"));      
         
         position.y += lineHeight;
-        SerializedProperty radius = property.FindPropertyRelative("radius");
-        EditorGUI.PropertyField(position, radius);
+        SerializedProperty radius = BaseValueHelper.GetValueProp(property.FindPropertyRelative("radius"));
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("radius"));
         position.y += lineHeight;
-        SerializedProperty raycastAll = property.FindPropertyRelative("raycastAll");
-        EditorGUI.PropertyField(position, raycastAll);
+        SerializedProperty raycastAll = BaseValueHelper.GetValueProp(property.FindPropertyRelative("raycastAll"));
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("raycastAll"));
         position.y += lineHeight;
         EditorGUI.PropertyField(position, property.FindPropertyRelative("layerMask"));
         position.y += lineHeight;
         EditorGUI.PropertyField(position, property.FindPropertyRelative("triggerInteraction"));
 
-        SerializedProperty distanceValue = BaseValueHelper.GetValueProp(distance);
-        FloatMax(distanceValue, 0.0f);
+        FloatMax(distance, 0.0f);
 
         if (raycastAll.boolValue)
         {
-            SerializedProperty sortAlongRay = property.FindPropertyRelative("sortAlongRay");
+            SerializedProperty sortAlongRay = BaseValueHelper.GetValueProp(property.FindPropertyRelative("sortAlongRay"));
             position.y += lineHeight;
-            EditorGUI.PropertyField(position, sortAlongRay);
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("sortAlongRay"));
             if (sortAlongRay.boolValue)
             {
                 position.y += lineHeight;
@@ -57,21 +58,20 @@ public class RaycastDrawer : PropertyDrawer
             }
         }
 
-        SerializedProperty radiusValue = BaseValueHelper.GetValueProp(radius);
-        FloatMax(radiusValue, 0.0f);
+        FloatMax(radius, 0.0f);
 
-        if(radiusValue.floatValue > 0.0f)
+        if(radius.floatValue > 0.0f)
         {
             position.y += lineHeight;
             /// Surface Normal Check           
-            SerializedProperty surfaceNormal = property.FindPropertyRelative("surfaceNormal");
-            EditorGUI.PropertyField(position, surfaceNormal);
+            SerializedProperty surfaceNormal = BaseValueHelper.GetValueProp(property.FindPropertyRelative("surfaceNormal"));
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("surfaceNormal"));
 
             if (surfaceNormal.boolValue)
             {
                 position.y += lineHeight;
-                SerializedProperty useRayDir = property.FindPropertyRelative("useRayDir");
-                EditorGUI.PropertyField(position, useRayDir);
+                SerializedProperty useRayDir = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useRayDir"));
+                EditorGUI.PropertyField(position, property.FindPropertyRelative("useRayDir"));
                 if (!useRayDir.boolValue)
                 {
                     position.y += lineHeight;
@@ -85,9 +85,9 @@ public class RaycastDrawer : PropertyDrawer
             }
         }
 
-        SerializedProperty useInvalidLayer = property.FindPropertyRelative("useInvalidLayer");
         position.y += lineHeight;
-        EditorGUI.PropertyField(position, useInvalidLayer);
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("useInvalidLayer"));
+        SerializedProperty useInvalidLayer = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useInvalidLayer"));
         if (useInvalidLayer.boolValue)
         {
             position.y += lineHeight;
@@ -98,14 +98,14 @@ public class RaycastDrawer : PropertyDrawer
         position.y += lineHeight;
         EditorGUI.LabelField(position, "Debugging", EditorStyles.boldLabel);
         position.y += lineHeight;
-        SerializedProperty drawGizmos = property.FindPropertyRelative("drawGizmos");
+        SerializedProperty drawGizmos = BaseValueHelper.GetValueProp(property.FindPropertyRelative("drawGizmos"));
         if (drawGizmos.boolValue)
         {
             float x = position.x;
             float rectWidth = position.width;
             float width = EditorGUIUtility.labelWidth + EditorGUIUtility.fieldWidth;
             position.width = width;
-            EditorGUI.PropertyField(position, drawGizmos);
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("drawGizmos"));
 
             position.x += position.width;
             position.width = rectWidth - position.width;
@@ -118,11 +118,14 @@ public class RaycastDrawer : PropertyDrawer
         }
         else
         {
-            EditorGUI.PropertyField(position, drawGizmos);
+            EditorGUI.PropertyField(position, property.FindPropertyRelative("drawGizmos"));
         }
 
         if (EditorGUI.EndChangeCheck())
             property.serializedObject.ApplyModifiedProperties();
+
+        EditorGUI.indentLevel--;
+
         EditorGUI.EndProperty();       
     }
 
@@ -138,25 +141,24 @@ public class RaycastDrawer : PropertyDrawer
         float height = 6.0f * lineHeight;
 
         /// Surface Normal Settings
-        SerializedProperty radius = property.FindPropertyRelative("radius");
-        SerializedProperty radiusValue = BaseValueHelper.GetValueProp(radius);
-        SerializedProperty surfaceNormal = property.FindPropertyRelative("surfaceNormal");
-        SerializedProperty useRayDir = property.FindPropertyRelative("useRayDir");
-        SerializedProperty drawGizmos = property.FindPropertyRelative("drawGizmos");
-        SerializedProperty raycastAll = property.FindPropertyRelative("raycastAll");
-        SerializedProperty customCheckDirection = property.FindPropertyRelative("customCheckDir");
-        SerializedProperty useInvalidLayer = property.FindPropertyRelative("useInvalidLayer");
+        SerializedProperty radius = BaseValueHelper.GetValueProp(property.FindPropertyRelative("radius"));
+        SerializedProperty surfaceNormal = BaseValueHelper.GetValueProp(property.FindPropertyRelative("surfaceNormal"));
+        SerializedProperty useRayDir = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useRayDir"));
+        SerializedProperty drawGizmos = BaseValueHelper.GetValueProp(property.FindPropertyRelative("drawGizmos"));
+        SerializedProperty raycastAll = BaseValueHelper.GetValueProp(property.FindPropertyRelative("raycastAll"));
+        SerializedProperty customCheckDirection = BaseValueHelper.GetValueProp(property.FindPropertyRelative("customCheckDir"));
+        SerializedProperty useInvalidLayer = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useInvalidLayer"));
 
         if (raycastAll.boolValue)
         {
             height += lineHeight;
-            if (property.FindPropertyRelative("sortAlongRay").boolValue)
+            if (BaseValueHelper.GetValueProp(property.FindPropertyRelative("sortAlongRay")).boolValue)
             {
                 height += lineHeight;
             }
         }
 
-        if(radiusValue.floatValue > 0.0f)
+        if(radius.floatValue > 0.0f)
         {
             height += lineHeight;
 

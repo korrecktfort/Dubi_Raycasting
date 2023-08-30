@@ -9,12 +9,10 @@ namespace Dubi.RaycastExtension
     public class RaycastTesting : MonoBehaviour
     {
         [SerializeField] Raycast rayCast = new Raycast();
-        [SerializeField] LayerMask invalidLayer;
-
 
         private void Awake()
         {
-            this.rayCast.Setup(this.transform, Vector3.zero, Vector3.forward);
+            this.rayCast.Setup();
         }
 
         public void Update()
@@ -24,14 +22,6 @@ namespace Dubi.RaycastExtension
                 Collider collider = this.rayCast.Hit.collider;
             }
         }
-
-
-#if UNITY_EDITOR
-        private void OnDrawGizmos()
-        {
-            this.rayCast.OnDrawGizmos();
-        }
-#endif
     }
 
    

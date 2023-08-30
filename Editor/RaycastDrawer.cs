@@ -175,7 +175,7 @@ public class RaycastDrawer : PropertyDrawer
         /// Gizmos Settings
         height += lineHeight * 2.0f;
         if (BaseValueHelper.GetValueProp(drawGizmos).boolValue)
-            height += lineHeight;       
+            height += lineHeight * 2.0f;       
 
         return height;
     }

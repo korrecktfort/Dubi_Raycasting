@@ -11,7 +11,11 @@ namespace Dubi.RaycastExtension
 {
     [System.Serializable]
     public class Raycast
-    {      
+    {
+        [SerializeField] TransformValue originTransform = null;
+        [SerializeField] Vector3Value localOffset = null;
+        [SerializeField] Vector3Value localDirection = null;
+
         public bool Valid => (!this.raycastAll.Value && this.rayCastHit.collider != null) 
             || (this.raycastAll.Value && this.rayCastHits.Length > 0);
         public RaycastHit Hit 
@@ -82,24 +86,33 @@ namespace Dubi.RaycastExtension
             this.direction = direction;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="origin"></param>
-        /// <param name="direction"></param>
-        public void Setup(Vector3 origin, Vector3 direction)
-        {
-            this.localTransform = null;
-            this.origin = origin;
-            this.direction = direction;
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="origin"></param>
+        ///// <param name="direction"></param>
+        //public void Setup(Vector3 origin, Vector3 direction)
+        //{
+        //    this.localTransform = null;
+        //    this.origin = origin;
+        //    this.direction = direction;
+        //}
 
-        public void Setup(Vector3 origin, Vector3 direction, float distance)
+        //public void Setup(Vector3 origin, Vector3 direction, float distance)
+        //{
+        //    this.localTransform = null;
+        //    this.origin = origin;
+        //    this.direction = direction;
+        //    this.distance.Value = distance;
+        //}
+
+        public void Setup()
         {
-            this.localTransform = null;
-            this.origin = origin;
-            this.direction = direction;
-            this.distance.Value = distance;
+            if(this.originTransform.Value != null)
+            {
+                Setup(this.originTransform.Value, this.localOffset.Value, this.localDirection.Value);
+                return;
+            }
         }
 
         public bool UpdateRaycast()

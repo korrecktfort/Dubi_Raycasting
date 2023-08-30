@@ -12,7 +12,7 @@ public class RaycastDrawer : PropertyDrawer
     {
         EditorGUI.BeginProperty(position, label, property);
         EditorGUI.BeginChangeCheck();
-        float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+       
         position.height = EditorGUIUtility.singleLineHeight;
                 
         property.isExpanded = EditorGUI.Foldout(position, property.isExpanded, label);
@@ -24,101 +24,88 @@ public class RaycastDrawer : PropertyDrawer
             return;
         }
 
-        //position = EditorGUI.IndentedRect(position);
+        SerializedProperty originTransform = property.FindPropertyRelative("originTransform");
+        SerializedProperty localOffset = property.FindPropertyRelative("localOffset");
+        SerializedProperty localDirection = property.FindPropertyRelative("localDirection");
+        SerializedProperty distance = property.FindPropertyRelative("distance");
+        SerializedProperty radius = property.FindPropertyRelative("radius");
+        SerializedProperty raycastAll = property.FindPropertyRelative("raycastAll");
+        SerializedProperty layerMask = property.FindPropertyRelative("layerMask");
+        SerializedProperty triggerInteraction = property.FindPropertyRelative("triggerInteraction");
+        SerializedProperty sortAlongRay = property.FindPropertyRelative("sortAlongRay");
+        SerializedProperty ascendingOrder = property.FindPropertyRelative("ascendingOrder");
+        SerializedProperty surfaceNormal = property.FindPropertyRelative("surfaceNormal");
+        SerializedProperty useRayDir = property.FindPropertyRelative("useRayDir");
+        SerializedProperty customCheckDirection = property.FindPropertyRelative("customCheckDir");
+        SerializedProperty isLocalCheckDir = property.FindPropertyRelative("isLocalCheckDir");
+        SerializedProperty useCustomSurfaceCheck = property.FindPropertyRelative("useCustomSurfaceCheck");
+        SerializedProperty useInvalidLayer = property.FindPropertyRelative("useInvalidLayer");
+        SerializedProperty invalidLayer = property.FindPropertyRelative("invalidLayer");
+        SerializedProperty drawGizmos = property.FindPropertyRelative("drawGizmos");
+        SerializedProperty color = property.FindPropertyRelative("color");
+        SerializedProperty drawColliderHit = property.FindPropertyRelative("drawColliderHit");
 
         EditorGUI.indentLevel++;
-
-        /// Settings
-        position.y += lineHeight;
-        SerializedProperty distance = BaseValueHelper.GetValueProp(property.FindPropertyRelative("distance"));
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("distance"));      
+        this.lastHeight = position.height;        
+        AddPropertyField(ref position, originTransform, "The world origin of the Raycast. It will align to its position before casting.");
+        AddPropertyField(ref position, localOffset, "The local offset added to the origin transform position before casting.");
+        AddPropertyField(ref position, localDirection, "The local direction of the Raycast. It will align before casting.");
+        AddPropertyField(ref position, distance, "The distance of the Raycast. It clamps to 0.0f.");
+        FloatMax(BaseValueHelper.GetValueProp(distance), 0.0f);
         
-        position.y += lineHeight;
-        SerializedProperty radius = BaseValueHelper.GetValueProp(property.FindPropertyRelative("radius"));
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("radius"));
-        position.y += lineHeight;
-        SerializedProperty raycastAll = BaseValueHelper.GetValueProp(property.FindPropertyRelative("raycastAll"));
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("raycastAll"));
-        position.y += lineHeight;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("layerMask"));
-        position.y += lineHeight;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("triggerInteraction"));
-
-        FloatMax(distance, 0.0f);
-
-        if (raycastAll.boolValue)
+        /// Radius options
+        AddPropertyField(ref position, radius, "The radius of the Raycast. It clamps to 0.0f.");
+        FloatMax(BaseValueHelper.GetValueProp(radius), 0.0f);
+        if (BaseValueHelper.GetValueProp(radius).floatValue > 0.0f)
         {
-            SerializedProperty sortAlongRay = BaseValueHelper.GetValueProp(property.FindPropertyRelative("sortAlongRay"));
-            position.y += lineHeight;
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("sortAlongRay"));
-            if (sortAlongRay.boolValue)
+            EditorGUI.indentLevel++;
+            AddPropertyField(ref position, surfaceNormal, "If true, it will check the surface normal of the hit collider.");
+            if (BaseValueHelper.GetValueProp(surfaceNormal).boolValue)
             {
-                position.y += lineHeight;
-                EditorGUI.PropertyField(position, property.FindPropertyRelative("ascendingOrder"));
-            }
-        }
-
-        FloatMax(radius, 0.0f);
-
-        if(radius.floatValue > 0.0f)
-        {
-            position.y += lineHeight;
-            /// Surface Normal Check           
-            SerializedProperty surfaceNormal = BaseValueHelper.GetValueProp(property.FindPropertyRelative("surfaceNormal"));
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("surfaceNormal"));
-
-            if (surfaceNormal.boolValue)
-            {
-                position.y += lineHeight;
-                SerializedProperty useRayDir = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useRayDir"));
-                EditorGUI.PropertyField(position, property.FindPropertyRelative("useRayDir"));
-                if (!useRayDir.boolValue)
+                AddPropertyField(ref position, useRayDir, "Uses the ray hit normal for surface checks. Radial ray hits have a normal based on the angle the radius hit the collider, this can be overridden with more options here.");
+                if (!BaseValueHelper.GetValueProp(useRayDir).boolValue)
                 {
-                    position.y += lineHeight;
-                    SerializedProperty customCheckDirection = property.FindPropertyRelative("customCheckDir");
-                    EditorGUI.PropertyField(position, customCheckDirection);
-                    position.y += EditorGUI.GetPropertyHeight(customCheckDirection);
-                    EditorGUI.PropertyField(position, property.FindPropertyRelative("isLocalCheckDir"));
-                    position.y += lineHeight;
-                    EditorGUI.PropertyField(position, property.FindPropertyRelative("useCustomSurfaceCheck"));
+                    AddPropertyField(ref position, customCheckDirection, "The custom check direction of the Raycast.");
+                    AddPropertyField(ref position, isLocalCheckDir, "If true, it will use the check direction above as a local direction value.");
+                    AddPropertyField(ref position, useCustomSurfaceCheck, "If true, it will use the defined custom check method for surface checks. See Raycast.SurfaceNormalManualRaycast(RaycastHit) for how it is done.");
                 }
             }
+            EditorGUI.indentLevel--;
         }
 
-        position.y += lineHeight;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("useInvalidLayer"));
-        SerializedProperty useInvalidLayer = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useInvalidLayer"));
-        if (useInvalidLayer.boolValue)
+        /// Raycast all options
+        AddPropertyField(ref position, raycastAll, "If true, it will cast all the colliders in distance range. Otherwise, it will cast the first collider hit.");
+        if (BaseValueHelper.GetValueProp(raycastAll).boolValue)
         {
-            position.y += lineHeight;
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("invalidLayer"));
+            EditorGUI.indentLevel++;
+            AddPropertyField(ref position, sortAlongRay, "If true, it will sort the hit colliders along the raycast direction.");
+            if (BaseValueHelper.GetValueProp(sortAlongRay).boolValue)
+            {
+                AddPropertyField(ref position, ascendingOrder, "If true, it will sort the hit colliders in ascending order.");
+            }
+            EditorGUI.indentLevel--;
         }
 
-        /// Debugging & Gizmos
-        position.y += lineHeight;
-        EditorGUI.LabelField(position, "Debugging", EditorStyles.boldLabel);
-        position.y += lineHeight;
-        SerializedProperty drawGizmos = BaseValueHelper.GetValueProp(property.FindPropertyRelative("drawGizmos"));
-        if (drawGizmos.boolValue)
+        AddPropertyField(ref position, layerMask, "The layer mask of the Raycast.");
+        AddPropertyField(ref position, triggerInteraction, "The trigger interaction of the Raycast.");
+        
+
+
+        /// Invalid layer options
+        AddPropertyField(ref position, useInvalidLayer, "If true, it will make the cast result invalid if the layer has been hit.");
+        if (BaseValueHelper.GetValueProp(useInvalidLayer).boolValue)
         {
-            float x = position.x;
-            float rectWidth = position.width;
-            float width = EditorGUIUtility.labelWidth + EditorGUIUtility.fieldWidth;
-            position.width = width;
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("drawGizmos"));
-
-            position.x += position.width;
-            position.width = rectWidth - position.width;
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("color"), GUIContent.none);
-
-            position.y += lineHeight;
-            position.width = rectWidth;
-            position.x = x;
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("drawColliderHit"));
+            AddPropertyField(ref position, invalidLayer, "The invalid layer of the Raycast.");
         }
-        else
+
+        /// Draw options
+        AddPropertyField(ref position, drawGizmos, "If true, it will draw the Raycast gizmos.");
+        if (BaseValueHelper.GetValueProp(drawGizmos).boolValue)
         {
-            EditorGUI.PropertyField(position, property.FindPropertyRelative("drawGizmos"));
+            EditorGUI.indentLevel++;
+            AddPropertyField(ref position, color, "The color of the Raycast gizmos.");
+            AddPropertyField(ref position, drawColliderHit, "If true, it will draw the collider hit gizmos.");
+            EditorGUI.indentLevel--;
         }
 
         if (EditorGUI.EndChangeCheck())
@@ -127,6 +114,15 @@ public class RaycastDrawer : PropertyDrawer
         EditorGUI.indentLevel--;
 
         EditorGUI.EndProperty();       
+    }
+
+    float lastHeight = 0.0f;
+    void AddPropertyField(ref Rect position, SerializedProperty property, string toolTip)
+    {
+        position.y += this.lastHeight + EditorGUIUtility.standardVerticalSpacing;
+        position.height = EditorGUI.GetPropertyHeight(property);
+        EditorGUI.PropertyField(position, property, new GUIContent(property.displayName, toolTip));
+        this.lastHeight = position.height;
     }
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -138,46 +134,47 @@ public class RaycastDrawer : PropertyDrawer
         }
 
         /// Standart Settings
-        float height = 6.0f * lineHeight;
+        float height = 8.0f * lineHeight;
 
         /// Surface Normal Settings
-        SerializedProperty radius = BaseValueHelper.GetValueProp(property.FindPropertyRelative("radius"));
-        SerializedProperty surfaceNormal = BaseValueHelper.GetValueProp(property.FindPropertyRelative("surfaceNormal"));
-        SerializedProperty useRayDir = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useRayDir"));
-        SerializedProperty drawGizmos = BaseValueHelper.GetValueProp(property.FindPropertyRelative("drawGizmos"));
-        SerializedProperty raycastAll = BaseValueHelper.GetValueProp(property.FindPropertyRelative("raycastAll"));
-        SerializedProperty customCheckDirection = BaseValueHelper.GetValueProp(property.FindPropertyRelative("customCheckDir"));
-        SerializedProperty useInvalidLayer = BaseValueHelper.GetValueProp(property.FindPropertyRelative("useInvalidLayer"));
+        SerializedProperty radius = property.FindPropertyRelative("radius");
+        SerializedProperty sortAlongRay = property.FindPropertyRelative("sortAlongRay");
+        SerializedProperty surfaceNormal = property.FindPropertyRelative("surfaceNormal");
+        SerializedProperty useRayDir = property.FindPropertyRelative("useRayDir");
+        SerializedProperty drawGizmos = property.FindPropertyRelative("drawGizmos");
+        SerializedProperty raycastAll = property.FindPropertyRelative("raycastAll");
+        SerializedProperty customCheckDirection = property.FindPropertyRelative("customCheckDir");
+        SerializedProperty useInvalidLayer = property.FindPropertyRelative("useInvalidLayer");
 
-        if (raycastAll.boolValue)
+        if (BaseValueHelper.GetValueProp(raycastAll).boolValue)
         {
             height += lineHeight;
-            if (BaseValueHelper.GetValueProp(property.FindPropertyRelative("sortAlongRay")).boolValue)
+            if (BaseValueHelper.GetValueProp(sortAlongRay).boolValue)
             {
                 height += lineHeight;
             }
         }
 
-        if(radius.floatValue > 0.0f)
+        if(BaseValueHelper.GetValueProp(radius).floatValue > 0.0f)
         {
             height += lineHeight;
 
-            if(surfaceNormal.boolValue)
+            if(BaseValueHelper.GetValueProp(surfaceNormal).boolValue)
             {
                 height += lineHeight;
 
-                if (!useRayDir.boolValue)
+                if (!BaseValueHelper.GetValueProp(useRayDir).boolValue)
                 {
                     height += lineHeight * 2.0f + EditorGUI.GetPropertyHeight(customCheckDirection);
                 }
             }
         }
 
-        height += lineHeight * (useInvalidLayer.boolValue ? 2.0f : 1.0f);
+        height += lineHeight * (BaseValueHelper.GetValueProp(useInvalidLayer).boolValue ? 2.0f : 1.0f);
 
         /// Gizmos Settings
         height += lineHeight * 2.0f;
-        if (drawGizmos.boolValue)
+        if (BaseValueHelper.GetValueProp(drawGizmos).boolValue)
             height += lineHeight;       
 
         return height;

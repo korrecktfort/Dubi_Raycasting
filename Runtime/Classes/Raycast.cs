@@ -31,13 +31,13 @@ namespace Dubi.RaycastExtension
         public RaycastHit[] Hits => this.rayCastHits;              
         public Vector3 Origin { set => this.origin = value; }
         public Vector3 CustomCheckDirection { set => this.customCheckDir.Value = value; }
-        public Vector3 Direction { get => this.direction; set => this.direction = value; }
+        public Vector3 Direction { get => this.localDirection.Value; set => this.localDirection.Value = value; }
         public float Distance { get => this.distance.Value; set => this.distance.Value = value; }
         public float Radius { get => this.radius.Value; set => this.radius.Value = value; }
-        public Vector3 Offset { get => offset.Value; set => offset.Value = value; }
+        public Vector3 Offset { get => localOffset.Value; set => localOffset.Value = value; }
                 
         Vector3 origin = Vector3.zero;
-        Vector3 direction = Vector3.forward;
+        //Vector3 direction = Vector3.forward;
         RaycastHit rayCastHit = new RaycastHit();
         RaycastHit[] rayCastHits = new RaycastHit[0];
 
@@ -46,7 +46,7 @@ namespace Dubi.RaycastExtension
         [SerializeField] BoolValue raycastAll = new BoolValue(false);       
         [SerializeField] LayerMaskValue layerMask = default;
         [SerializeField] QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
-        [SerializeField] Vector3Value offset = new Vector3Value(Vector3.zero);
+        //[SerializeField] Vector3Value offset = new Vector3Value(Vector3.zero);
 
         [SerializeField] BoolValue surfaceNormal = new BoolValue(false);
         [SerializeField] BoolValue useRayDir = new BoolValue(true);
@@ -83,7 +83,7 @@ namespace Dubi.RaycastExtension
         {           
             this.originTransform.Value = localTransform;
             this.origin = origin;
-            this.direction = direction;
+            this.localDirection.Value = direction;
 
 #if UNITY_EDITOR
             this.setup = true;
@@ -131,11 +131,11 @@ namespace Dubi.RaycastExtension
             if(this.originTransform.Value != null)
             {
                 Matrix4x4 m = this.originTransform.Value.localToWorldMatrix;                
-                ray = new Ray(m.MultiplyPoint(this.origin + this.offset.Value), m.MultiplyVector(this.direction));
+                ray = new Ray(m.MultiplyPoint(this.localOffset.Value), m.MultiplyVector(this.localDirection.Value));
             }
             else
             {
-                ray = new Ray(this.origin + this.offset.Value, this.direction);
+                ray = new Ray(this.origin + this.localOffset.Value, this.localDirection.Value);
             }            
 
 #if UNITY_EDITOR

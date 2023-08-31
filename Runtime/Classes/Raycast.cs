@@ -12,12 +12,10 @@ namespace Dubi.RaycastExtension
     [System.Serializable]
     public class Raycast
     {
-        [SerializeField] TransformValue originTransform = null;
-        [SerializeField] Vector3Value localOffset = null;
-        [SerializeField] Vector3Value localDirection = null;
-
+        #region Propreties
         public bool Valid => (!this.raycastAll.Value && this.rayCastHit.collider != null) 
             || (this.raycastAll.Value && this.rayCastHits.Length > 0);
+
         public RaycastHit Hit 
         {
             get 
@@ -28,25 +26,38 @@ namespace Dubi.RaycastExtension
                 return this.rayCastHit; 
             } 
         }
-        public RaycastHit[] Hits => this.rayCastHits;              
+
+        public RaycastHit[] Hits => this.rayCastHits;    
+        
         public Vector3 Origin { set => this.origin = value; }
+
         public Vector3 CustomCheckDirection { set => this.customCheckDir.Value = value; }
+
         public Vector3 Direction { get => this.localDirection.Value; set => this.localDirection.Value = value; }
+
         public float Distance { get => this.distance.Value; set => this.distance.Value = value; }
+
         public float Radius { get => this.radius.Value; set => this.radius.Value = value; }
+
         public Vector3 Offset { get => localOffset.Value; set => localOffset.Value = value; }
-                
+
+        public bool RaycastAll { get => this.raycastAll.Value; }
+        #endregion
+
+        #region Fields
         Vector3 origin = Vector3.zero;
-        //Vector3 direction = Vector3.forward;
         RaycastHit rayCastHit = new RaycastHit();
         RaycastHit[] rayCastHits = new RaycastHit[0];
+
+        [SerializeField] TransformValue originTransform = null;
+        [SerializeField] Vector3Value localOffset = null;
+        [SerializeField] Vector3Value localDirection = null;
 
         [SerializeField] FloatValue distance = new FloatValue(1.0f);
         [SerializeField] FloatValue radius = new FloatValue(0.0f);
         [SerializeField] BoolValue raycastAll = new BoolValue(false);       
         [SerializeField] LayerMaskValue layerMask = default;
         [SerializeField] QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
-        //[SerializeField] Vector3Value offset = new Vector3Value(Vector3.zero);
 
         [SerializeField] BoolValue surfaceNormal = new BoolValue(false);
         [SerializeField] BoolValue useRayDir = new BoolValue(true);
@@ -61,55 +72,29 @@ namespace Dubi.RaycastExtension
         /// Invalid Layer
         [SerializeField, Tooltip("Select layers that make the cast invalid if hit")] BoolValue useInvalidLayer = new BoolValue(false);
         [SerializeField] LayerMaskValue invalidLayer;
+        bool setup = false;
+        #endregion
 
-#if UNITY_EDITOR        
-        Vector3 worldOrigin, worldDirection;
-        //[Header("Gizmos")]
+        #region Gizmos
+        public Vector3 worldOrigin, worldDirection;
         [SerializeField] BoolValue drawGizmos = new BoolValue(false);
         [SerializeField] BoolValue drawColliderHit = new BoolValue(false);
         [SerializeField] ColorValue color = new ColorValue(Color.white);
-        bool setup = false;
-#endif
+        public bool DrawGizmos => this.drawGizmos.Value;
+        public bool DrawColliderHit => this.drawColliderHit.Value;
+        public Color GizmosColor => this.color.Value;
+        #endregion
 
         public Raycast() { }
-
-        /// <summary>
-        /// Create a locally set Raycast
-        /// </summary>
-        /// <param name="localTransform">local transform to use to multiply to world</param>
-        /// <param name="origin">Set local origin</param>
-        /// <param name="direction">Set local direction</param>
+                
         public void Setup(Transform localTransform, Vector3 origin, Vector3 direction)
         {           
             this.originTransform.Value = localTransform;
             this.origin = origin;
             this.localDirection.Value = direction;
-
-#if UNITY_EDITOR
             this.setup = true;
-#endif
         }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="origin"></param>
-        ///// <param name="direction"></param>
-        //public void Setup(Vector3 origin, Vector3 direction)
-        //{
-        //    this.localTransform = null;
-        //    this.origin = origin;
-        //    this.direction = direction;
-        //}
-
-        //public void Setup(Vector3 origin, Vector3 direction, float distance)
-        //{
-        //    this.localTransform = null;
-        //    this.origin = origin;
-        //    this.direction = direction;
-        //    this.distance.Value = distance;
-        //}
-
+        
         public void Setup()
         {
             if(this.originTransform.Value != null)
@@ -121,10 +106,8 @@ namespace Dubi.RaycastExtension
 
         public bool UpdateRaycast()
         {
-#if UNITY_EDITOR
             if (!this.setup)
-                throw new System.Exception("Raycast not setup");
-#endif
+                Setup();
 
             Ray ray = new Ray();
 
@@ -138,10 +121,8 @@ namespace Dubi.RaycastExtension
                 ray = new Ray(this.origin + this.localOffset.Value, this.localDirection.Value);
             }            
 
-#if UNITY_EDITOR
             this.worldOrigin = ray.origin;
             this.worldDirection = ray.direction;
-#endif
 
             if(this.radius.Value > 0.0f)
             {
@@ -348,82 +329,5 @@ namespace Dubi.RaycastExtension
 
             return Vector3.zero;
         }
-
-        //bool Includes(LayerMask layerMask, int layer)
-        //{
-        //    return (layerMask.value & 1 << layer) > 0;
-        //}
-
-#if UNITY_EDITOR
-        public void OnDrawGizmos()
-        {
-            if (!EditorApplication.isPlaying || !this.drawGizmos.Value)
-                return;
-
-            if (this.rayCastHits.Length > 0)
-                for (int i = 0; i < this.rayCastHits.Length; i++)
-                    Handles.Label(this.rayCastHits[i].point, i.ToString());
-
-            /// if ray hits
-            if (Valid)
-            {
-                /// Draw grey line after hit
-                if (!this.raycastAll.Value)
-                    RaycastGizmos.DrawNormal(this.rayCastHit.point, this.worldDirection, Color.grey, Mathf.Max(0.0f, this.distance.Value - this.rayCastHit.distance), 1.0f);
-
-                /// Draw ray before hit
-                if (this.radius.Value > 0.0f)
-                {
-                    RaycastGizmos.DrawGizmoSphere(this.worldOrigin, this.radius.Value, this.color.Value);
-
-                    if (this.raycastAll.Value)
-                        RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.distance.Value, this.radius.Value, this.color.Value, 2.0f);
-                    else
-                        RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.rayCastHit.distance, this.radius.Value, this.color.Value, 2.0f);
-                }
-                else
-                {
-                    if (this.raycastAll.Value)
-                        RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color.Value, this.distance.Value, 2.0f);
-                    else
-                        RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color.Value, this.rayCastHit.distance, 2.0f);
-                }
-
-                /// Draw hit normal
-                if (this.raycastAll.Value)
-                {
-                    foreach (RaycastHit hit in this.rayCastHits)
-                        RaycastGizmos.DrawRayCastHit(hit, this.color.Value);
-                }
-                else
-                    RaycastGizmos.DrawRayCastHit(this.rayCastHit, this.color.Value);
-
-                /// Draw hit collider
-                if (this.drawColliderHit.Value)
-                {
-                    if (this.raycastAll.Value)
-                    {
-                        foreach (RaycastHit hit in this.rayCastHits)
-                            RaycastGizmos.DrawCollider(hit.collider, this.color.Value);
-                    }
-                    else
-                        RaycastGizmos.DrawCollider(this.rayCastHit.collider, this.color.Value);
-                }
-            }
-            else
-            {
-                /// Draw ray without hit                    
-                if (this.radius.Value > 0.0f)
-                {
-                    RaycastGizmos.DrawGizmoSphere(this.worldOrigin, this.radius.Value, this.color.Value);
-                    RaycastGizmos.DrawWireCapsule(this.worldOrigin, this.worldOrigin + this.worldDirection * this.distance.Value, this.radius.Value, this.color.Value);
-                }
-                else
-                {
-                    RaycastGizmos.DrawNormal(this.worldOrigin, this.worldDirection, this.color.Value, this.distance.Value);
-                }
-            }
-        }
-#endif
     }   
 }

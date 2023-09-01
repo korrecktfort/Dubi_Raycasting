@@ -1,7 +1,5 @@
-using Rewired.ComponentControls.Data;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 [System.Serializable]
@@ -19,11 +17,15 @@ public class CapsuleData
     Vector3 top, center, bottom, rightAxis, upAxis, forwardAxis, innerTop, innerBottom, topOffset, bottomOffset;
     float height, halfHeight, radius;
     Origin originType = Origin.Center;
+    bool overlapping = false;
+
+    public bool Overlapping => this.overlapping;
 
 #if UNITY_EDITOR
     [SerializeField] bool drawGizmos = false;
     [SerializeField] Color color = Color.white;
-    bool overlapping = false;
+    public bool DrawGizmos => this.drawGizmos;
+    public Color GizmoColor => this.color;
 #endif
 
     public Vector3 Top 
@@ -292,32 +294,13 @@ public class CapsuleData
 
     public bool Overlaps(LayerMask layerMask, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
     {
-#if UNITY_EDITOR
         this.overlapping = Physics.CheckCapsule(this.innerBottom, this.innerTop, this.radius, layerMask, triggerInteraction); ;
         return this.overlapping;
-#else
-        return Physics.CheckCapsule(this.innerBottom, this.innerTop, this.radius, layerMask, triggerInteraction);
-#endif
     }
 
     public bool Overlaps()
     {
-#if UNITY_EDITOR
         this.overlapping = Physics.CheckCapsule(this.innerBottom, this.innerTop, this.radius);
-        return overlapping;
-#else
-        return Physics.CheckCapsule(this.innerBottom, this.innerTop, this.radius);
-#endif
+        return this.overlapping;
     }
-
-#if UNITY_EDITOR
-    public void OnDrawGizmos()
-    {
-        if (this.drawGizmos)
-        {
-            RaycastGizmos.DrawWireCapsule(this, this.color, this.overlapping ? 3.0f : 1.0f);
-        }
-    }
-
-#endif
 }

@@ -123,6 +123,28 @@ public class CapsuleData
         get => this.forwardAxis;        
     }
 
+    public Vector3 OriginPosition
+    {
+        get
+        {
+            switch (this.originType)
+            {
+                case Origin.Bottom:
+                    return this.bottom;
+                case Origin.InnerBottom:
+                    return this.innerBottom;
+                case Origin.Center:
+                    return this.center;
+                case Origin.InnerTop:
+                    return this.innerTop;
+                case Origin.Top:
+                    return this.top;
+                default:
+                    return this.center;
+            }
+        }
+    }
+
     public Origin OriginType
     {
         get => this.originType;

@@ -125,7 +125,16 @@ public class CapsuleData
 
     public Origin OriginType
     {
-        set => this.originType = value;
+        get => this.originType;
+
+        set
+        {
+            if (this.originType == value)
+                return;
+
+            this.originType = value;
+            AxisChanged();
+        }
     }
 
     public CapsuleData() { }
@@ -143,6 +152,42 @@ public class CapsuleData
     public CapsuleData(Vector3 top, Vector3 bottom, float radius)
     {
         SetCapsuleData(top, bottom, radius);
+    }
+
+    public CapsuleData(CapsuleCollider col)
+    {
+        SetCapsuleData(col);
+    }
+
+    public void SetCapsuleData(CapsuleCollider col)
+    {
+        switch (col.direction)
+        {
+            case 0:
+                this.UpAxis = col.transform.right;
+                break;
+            case 1:
+                this.UpAxis = col.transform.up;
+                break;
+            case 2:
+                this.UpAxis = col.transform.forward;
+                break;
+        }
+
+        this.radius = col.radius;
+        this.height = col.height;
+        this.halfHeight = this.height * 0.5f;
+
+        Vector3 offset = this.upAxis * this.halfHeight;
+        Vector3 radiusOffset = this.upAxis * this.radius;
+
+        this.center = col.transform.position + col.center;
+        this.top = this.center + offset;
+        this.bottom = this.center - offset;
+        this.innerTop = this.top - radiusOffset;
+        this.innerBottom = this.bottom + radiusOffset;
+
+        ApplyOffsets();
     }
 
     public void SetCapsuleData(Vector3 center, Vector3 upAxis, float height, float radius)
@@ -233,7 +278,8 @@ public class CapsuleData
 
     void AxisChanged()
     {
-        Vector3 halfOffset = this.upAxis * (this.height - this.radius * 2.0f);
+        Vector3 heightOffset = this.upAxis * this.height;
+        Vector3 halfOffset = this.upAxis * this.halfHeight;
         Vector3 radiusOffset = this.upAxis * this.radius;        
 
         switch (this.originType)

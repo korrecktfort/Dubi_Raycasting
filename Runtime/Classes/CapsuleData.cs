@@ -60,8 +60,15 @@ public class CapsuleData
 
     public float Height 
     { 
-        get => height; 
-        set => SetCapsuleData(this.center, this.upAxis, value, this.radius); 
+        get => height;
+        set
+        {
+            this.height = Mathf.Max(0.0f, value);
+            this.halfHeight = this.height * 0.5f;
+            AxisChanged();
+
+            // SetCapsuleData(this.center, this.upAxis, value, this.radius);  
+        }
     }
 
     public float TopOffset 
@@ -203,7 +210,8 @@ public class CapsuleData
         Vector3 offset = this.upAxis * this.halfHeight;
         Vector3 radiusOffset = this.upAxis * this.radius;
 
-        this.center = col.transform.position + col.center;
+        Transform t = col.transform;
+        this.center = t.position + t.rotation * col.center;
         this.top = this.center + offset;
         this.bottom = this.center - offset;
         this.innerTop = this.top - radiusOffset;

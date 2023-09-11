@@ -30,6 +30,11 @@ public class CapsuleDataGizmoDrawer : MonoBehaviour
 
                     RaycastGizmos.DrawWireCapsule(capsuleData, capsuleData.GizmoColor, capsuleData.Overlapping ? 3.0f : 1.0f);
 
+                    using(new Handles.DrawingScope(capsuleData.GizmoColor))
+                    {
+                        foreach(Collider col in capsuleData.OverlappingCollider())                        
+                            RaycastGizmos.DrawCollider(col, capsuleData.GizmoColor);                                                    
+                    }
 
                     using (new Handles.DrawingScope(capsuleData.GizmoColor))
                     {

@@ -31,7 +31,16 @@ public class CapsuleData
     public Vector3 Top 
     { 
         get => this.top;
-        set => SetCapsuleData(value, this.bottom, this.radius);        
+        set
+        {            
+            this.top = value;
+            this.center = this.top - this.upAxis * this.halfHeight;
+            this.bottom = this.center - this.upAxis * this.halfHeight;
+            this.innerTop = this.top - this.upAxis * this.radius;
+            this.innerBottom = this.bottom + this.upAxis * this.radius;
+
+            ApplyOffsets();
+        }
     }
 
     public Vector3 Center 
@@ -43,19 +52,46 @@ public class CapsuleData
     public Vector3 Bottom 
     { 
         get => this.bottom;
-        set => SetCapsuleData(this.top, value, this.radius);        
+        set
+        {            
+            this.bottom = value;
+            this.center = this.bottom + this.upAxis * this.halfHeight;
+            this.top = this.center + this.upAxis * this.halfHeight;
+            this.innerBottom = this.bottom + this.upAxis * this.radius;
+            this.innerTop = this.top - this.upAxis * this.radius;
+
+            ApplyOffsets();            
+        } 
     }
 
     public Vector3 InnerTop 
     { 
         get => this.innerTop;
-        set => SetCapsuleData(this.radius, value, this.innerBottom);        
+        set
+        {            
+            this.innerTop = value;
+            this.top = this.innerTop + this.upAxis * this.radius;
+            this.bottom = this.top - this.upAxis * this.halfHeight * 2.0f;
+            this.center = this.bottom + this.upAxis * this.halfHeight;
+            this.innerBottom = this.bottom + this.upAxis * this.radius;
+
+            ApplyOffsets();
+        }
     }
 
     public Vector3 InnerBottom 
     { 
         get => this.innerBottom;
-        set => SetCapsuleData(this.radius, this.innerTop, value);
+        set
+        {            
+            this.innerBottom = value;
+            this.bottom = this.innerBottom - this.upAxis * this.radius;
+            this.center = this.bottom + this.upAxis * this.halfHeight;
+            this.top = this.center + this.upAxis * this.halfHeight;
+            this.innerTop = this.top - this.upAxis * this.radius;
+
+            ApplyOffsets();
+        }
     }
 
     public float Height 
@@ -308,6 +344,8 @@ public class CapsuleData
 
     void AxisChanged()
     {
+        DeplyOffsets();
+
         Vector3 heightOffset = this.upAxis * this.height;
         Vector3 halfOffset = this.upAxis * this.halfHeight;
         Vector3 radiusOffset = this.upAxis * this.radius;        
@@ -349,8 +387,23 @@ public class CapsuleData
                 this.center = this.bottom + halfOffset;
                 break;
         }
-
+                
         ApplyOffsets();
+    }
+
+    void DeplyOffsets()
+    {
+        if (this.bottomOffset != Vector3.zero)
+        {
+            this.bottom -= this.bottomOffset;
+            this.innerBottom -= this.bottomOffset;
+        }
+
+        if (this.topOffset != Vector3.zero)
+        {
+            this.top -= this.topOffset;
+            this.innerTop -= this.topOffset;
+        }
     }
 
     void ApplyOffsets()
@@ -378,5 +431,15 @@ public class CapsuleData
     {
         this.overlapping = Physics.CheckCapsule(this.innerBottom, this.innerTop, this.radius);
         return this.overlapping;
+    }
+
+    public Collider[] OverlappingCollider()
+    {
+        return Physics.OverlapCapsule(this.innerBottom, this.innerTop, this.radius);
+    }
+
+    public Collider[] OverlappingCollider(LayerMask layerMask, QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore)
+    {
+        return Physics.OverlapCapsule(this.innerBottom, this.innerTop, this.radius, layerMask, triggerInteraction);
     }
 }

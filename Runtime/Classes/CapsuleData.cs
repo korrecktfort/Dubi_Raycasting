@@ -107,15 +107,21 @@ public class CapsuleData
         }
     }
 
+    /// <summary>
+    /// positive offset values lead to the inside of the capsule
+    /// </summary>
     public float TopOffset 
     {
         set
         {
-            this.topOffset = this.upAxis * value;           
+            this.topOffset = -this.upAxis * value;           
             SetCapsuleData(this.center, this.upAxis, this.height, this.radius);            
         }
     }
 
+    /// <summary>
+    /// positive offset values lead to the inside of the capsule
+    /// </summary>
     public float BottomOffset 
     {
         set

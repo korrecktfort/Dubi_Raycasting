@@ -1,18 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 [System.Serializable]
 public class CapsuleData
 {
-    public enum Origin
-    {
-        Top,
-        InnerTop,
-        Center,
-        InnerBottom,
-        Bottom,
-    }
 
     Vector3 top, center, bottom, rightAxis, upAxis, forwardAxis, innerTop, innerBottom, topOffset, bottomOffset;
     float height, halfHeight, radius;
@@ -232,16 +223,18 @@ public class CapsuleData
 
     public void SetCapsuleData(CapsuleCollider col)
     {
+        Transform colTransform = col.transform;
+
         switch (col.direction)
         {
             case 0:
-                this.UpAxis = col.transform.right;
+                this.UpAxis = colTransform.right;
                 break;
             case 1:
-                this.UpAxis = col.transform.up;
+                this.UpAxis = colTransform.up;
                 break;
             case 2:
-                this.UpAxis = col.transform.forward;
+                this.UpAxis = colTransform.forward;
                 break;
         }
 
@@ -252,8 +245,7 @@ public class CapsuleData
         Vector3 offset = this.upAxis * this.halfHeight;
         Vector3 radiusOffset = this.upAxis * this.radius;
 
-        Transform t = col.transform;
-        this.center = t.position + t.rotation * col.center;
+        this.center = colTransform.TransformPoint(col.center);
         this.top = this.center + offset;
         this.bottom = this.center - offset;
         this.innerTop = this.top - radiusOffset;

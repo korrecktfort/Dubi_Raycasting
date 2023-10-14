@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -378,6 +379,41 @@ public static class RaycastGizmos
         Handles.color = c.Outline();
         Handles.DrawWireDisc(Vector3.zero, fwd, radius, thickness);
 
+        ResetColor();
+    }
+
+    public static void DrawWireCapsule2D(CapsuleData2D capsuleData, Color c, float thickness = 0.0f)
+    {
+        CacheColor();
+        c.Outline().SetColor();
+
+        Vector3 forward = Vector3.forward;
+        Vector3 right = capsuleData.Right;
+        float radius = capsuleData.Radius;
+        Vector3 p0 = capsuleData.InnerBottom;
+        Vector3 p1 = capsuleData.InnerTop;
+        Vector3 horOffset = right * capsuleData.Radius;
+                
+        Handles.DrawLine(p0 + horOffset, p1 + horOffset, thickness);
+        Handles.DrawLine(p0 + -horOffset, p1 + -horOffset, thickness);
+
+        Handles.DrawWireArc(p0, forward, right, 180.0f, radius, thickness);
+        Handles.DrawWireArc(p1, forward, right, -180.0f, radius, thickness);
+
+        c.Surface().SetColor();
+        Handles.DrawSolidArc(p0, forward, right, 180.0f, radius);
+        Handles.DrawSolidArc(p1, forward, right, -180.0f, radius);
+
+        ResetColor();
+    }
+
+    public static void DiscArc(Vector3 center, Vector3 normal, Vector3 from, float angle, float radius, float thickness, Color c)
+    {
+        CacheColor();
+        c.Outline().SetColor();
+        Handles.DrawWireArc(center, Vector3.up, Vector3.right, angle, radius, thickness);
+        c.Surface().SetColor();
+        Handles.DrawSolidArc(center, Vector3.up, Vector3.right, angle, radius);
         ResetColor();
     }
 #endif
